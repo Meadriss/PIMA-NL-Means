@@ -26,6 +26,7 @@ int main(){
   //  main_disp.wait();
   //  disp.wait();
   //}
+  image.noise(20,1);
   meansFilter(image);
   return 0;
 }
