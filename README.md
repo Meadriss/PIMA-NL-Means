@@ -1,14 +1,16 @@
 # PIMA-NL-Means
 projet de M1 sur le filtrage d'image de manière non local
 
-#Programmation
+# Compilation
 
 Le projet seras dévelloper en C++ avec l'utilisation de la librairie CImg (distribué sous la licence CeCILL) pour modifier et afficher les images.
 http://cimg.eu/
 
----Compilation---
-
 linux : g++ nlmeans.cpp -o nlmeans -O2 -lm -L/usr/X11R6/lib -lpthread -lX11 -std=c++11
+
+pour lancer le projet : ./nlmeans -i image -s patchSize (-n noise si l'image n'est pas bruité)
+
+valeur -n : 0 -> gaussian, 1 -> uniforme, 2 -> Salt & Pepper, 3 -> Poisson, 4 -> Rician
 
 # Bibliographie
 
