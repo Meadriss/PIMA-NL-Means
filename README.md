@@ -8,7 +8,7 @@ http://cimg.eu/
 
 ---Compilation---
 
-linux : g++ test.cpp -o test -O2 -lm -L/usr/X11R6/lib -lm -lpthread -lX11
+linux : g++ nlmeans.cpp -o nlmeans -O2 -lm -L/usr/X11R6/lib -lpthread -lX11 -std=c++11
 
 # Bibliographie
 
