@@ -3,7 +3,7 @@ projet de M1 sur le filtrage d'image de manière non local
 
 #Programmation
 
-Le projet seras dévelloper en C++ avec l'utilisation de la librairie CImg pour modifier et afficher les images.
+Le projet seras dévelloper en C++ avec l'utilisation de la librairie CImg (distribué sous la licence CeCILL) pour modifier et afficher les images.
 http://cimg.eu/
 
 ---Compilation---
