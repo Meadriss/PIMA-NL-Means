@@ -147,11 +147,6 @@ int main(int argc, char ** argv){
       cout << "sigma bruit = " << h << endl;
     }
   }
-
-  if (im.compare("")){
-    cout << "il n'y a pas d'image a débruité " << endl;
-    return 0;
-  }
   CImg<unsigned char> original(im);
   CImg<unsigned char> image(im);
   /* noise(sigma,noise_type) 
