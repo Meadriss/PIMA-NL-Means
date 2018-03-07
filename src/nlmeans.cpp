@@ -16,34 +16,38 @@ using namespace utils;
 CImg<unsigned char> zeroPadding(const CImg<unsigned char>& I,int patchSize){
   int n = I.width();
   int m = I.height();
-  CImg<unsigned char> F(n+patchSize-1,m+patchSize-1,1,I.spectrum(),0);
+  int search = 3*patchSize+1;
+  CImg<unsigned char> F(n+search,m+search,1,I.spectrum(),0);
   //F.rand(0,255);
-  F.draw_image(((patchSize-1)/2),((patchSize-1)/2),0,0,I);
+  F.draw_image(search/2,search/2,0,0,I);
   return F;
 }
 
 /*
- * distance euclidienne avec filtre moyenneur
+ * distance euclidienne
  */
-double weightTild(vector<float>& gsvI, vector<float>& gsvJ, float h){
-  double eucli = euclideanDistanceNL(gsvI,gsvJ);
+double weightTild(vector<float>& gsvI, vector<float>& gsvJ, float h,float a){
+  double eucli = euclideanDistance(gsvI,gsvJ);
   //cout << "eucli = "<< eucli << endl;
-  return exp(-(eucli*eucli)/(h*h));
+  return exp(-(eucli)/(h*h))/a;
 }
 
 /*
  * Constente de normalisation (pas sur de la formule)
  */
-double normaliseConstant(CImg<unsigned char>& I, vector<float>& gsvI,int patchSize,int h){
+double normaliseConstant(CImg<unsigned char>& I, vector<float>& gsvI,int patchSize,int h,int x, int y){
   vector<float> gsvJ;
   double constant = 0;
   int n = I.width();
   int m = I.height();
   int size = (patchSize-1)/2;
-  for(int i = size; i < n-size; i++){
-    for(int j = size; j < m-size; j++){
-      gsvJ = getGrayScaleVector(I,i,j,patchSize);
-      constant += weightTild(gsvI,gsvJ,h);
+  float a = 0;
+  for(int i = -size; i < size; i++){
+    for(int j = -size; j < size; j++){
+      gsvJ = getGrayScaleVector(I,x+i,y+j,size);
+      a = standarDeviationGauss(i,j,h);
+      constant += weightTild(gsvI,gsvJ,h,a);
+      //cout << i << ", " << constant << endl;
     }
   }
   return constant;
@@ -52,8 +56,8 @@ double normaliseConstant(CImg<unsigned char>& I, vector<float>& gsvI,int patchSi
 /*
  * fonction calcul poids ( pour l'instant je ne suis pas sur de la fonc)
  */
-double weight(vector<float>& gsvI, vector<float>& gsvJ, int h, double c){
-  double wt = weightTild(gsvI,gsvJ,h);
+double weight(vector<float>& gsvI, vector<float>& gsvJ, int h, double c,double a){
+  double wt = weightTild(gsvI,gsvJ,h,a);
   //cout << wt << " je sais pas " <<  endl;
   return wt/c;
 }
@@ -61,17 +65,23 @@ double weight(vector<float>& gsvI, vector<float>& gsvJ, int h, double c){
 double filterPixel(CImg<unsigned char>& I,CImg<unsigned char>& F, vector<float> gsvI, int patchSize, int h,int x, int y){
   int n = I.width();int m = I.height();
   int size = (patchSize-1)/2;
+  int search = (patchSize*3)+1;
   double w = 0, somme = 0;
-  double c = normaliseConstant(I,gsvI,patchSize,h);
+  double c = normaliseConstant(I,gsvI,patchSize,h,x,y);
   vector<float> gsvJ;
-  
-  for(int i= size; i < n+size; i++){
-    for(int j = size; j < m+size; j++){
-      gsvJ = getGrayScaleVector(I,i,j,patchSize);
-      w = weight(gsvI,gsvJ,h,c);
-      somme += w*F(i-size,j-size);
+  double sommeW = 0;
+  float a = 0;
+  for(int i= -size; i < size; i++){
+    for(int j = -size; j < size; j++){
+      gsvJ = getGrayScaleVector(I,x+i,y+j,size);
+      a = standarDeviationGauss(i,j,h);
+      w = weight(gsvI,gsvJ,h,c,a);
+      sommeW += w;
+      somme += w*I(x+i,y+j);
+      //cout << w << " je comprends pas " << endl;
     }
   }
+  //cout << sommeW << " couleur du pixel " << x << ", " << y << endl;
   return somme;
 }
 
@@ -85,42 +95,14 @@ CImg<unsigned char> nlMeans(CImg<unsigned char>& I, int patchSize,int h){
   int n = F.width();
   int m = F.height();
   int size = (patchSize-1)/2;
+  int search = patchSize*3+1;
   vector<float> gsvI;
-  vector<float> gsvJ;
-  double sommeWeight = 0;
-  double w = 0;
-  double maxW = 0;
-  double minW = 0;
-  double c = 0;
-  double somme =0;
   for(int x = 0; x < n; x++){
     for(int y = 0; y < m; y++){
-      gsvI = getGrayScaleVector(I,x+size,y+size,patchSize);
-      //c = normaliseConstant(I,gsvI,patchSize,h);
-      /*
-	for(int i = size; i < n+size; i++){
-	for(int j = size; j < m+size; j++){
-	gsvJ = getGrayScaleVector(I,i,j,patchSize);
-	w = weight(gsvI,gsvJ,h,c);
-	sommeWeight += w;
-	somme += w*F(i-size,j-size);
-	//F(i-size,j-size) = w*F(i-size,j-size)*c;
-	maxW = max(w,maxW);
-	minW = min(w,minW);
-	}
-	}
-      */
-      F(x,y) = filterPixel(I,F,gsvI,patchSize,h,x,y);
-      somme = 0;
-      w = 0;
-      maxW = 0;
-      minW = 0;
+      gsvI = getGrayScaleVector(I,x+search/2,y+search/2,size);
+      F(x,y) = filterPixel(I,F,gsvI,patchSize,h,x+search/2,y+search/2);
     }
   }
-  //cout << "on test le poids : "<< sommeWeight << ", max | min w :" << maxW << "," << minW << endl;
-  cout << " " << endl;
-  cout << " test valeur pixel : " << somme << endl;
-  cout << " " << endl;
   return F;
 }
 
@@ -147,11 +129,28 @@ int main(int argc, char ** argv){
     if (arg.compare("-n") == 0){
       i++;
       noi = atoi(argv[i]);
+      cout << "le bruit choisie est : " ;
+      if( noi == 0){
+	cout << "gaussien " << endl;
+      }
+      if( noi == 1){
+	cout << "uniforme " << endl;
+      }
+      if( noi == 2){
+	cout << "poivre et sel" << endl;
+      }
+      if( noi == 3){
+	cout << "poisson " << endl;
+      }
+      if( noi == 4){
+	cout << "Rician " << endl;
+      }
       continue;
     }
     if (arg.compare("-h") ==0){
       i++;
       h = atoi(argv[i]);
+      cout << "sigma bruit = " << h << endl;
     }
   }
   CImg<unsigned char> original(im);
@@ -162,7 +161,6 @@ int main(int argc, char ** argv){
   if( noi >= 0 && noi <= 4){
     image.noise(h,noi);
   }
-  //means(image,patchSize);
   CImg<unsigned char> filter = nlMeans(image,patchSize,h);
   CImgList<unsigned char> visu(original,image,filter);
   visu.display("test");

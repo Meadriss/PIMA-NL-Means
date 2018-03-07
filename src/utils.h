@@ -27,9 +27,8 @@ namespace utils{
   
   vector<float> getGrayScaleVector(CImg<unsigned char>& I,int x,int y,int size){
     vector<float> gsv;
-    int n = (size-1)/2;
-    for (int i = -n; i <n ; i++){
-      for(int j = -n; j < n; j++){
+    for (int i = -size; i <size ; i++){
+      for(int j = -size; j < size; j++){
 	gsv.push_back((float)I(x+i,y+j));
       }
     }
@@ -78,7 +77,7 @@ namespace utils{
       vector<float> normeA = normalise(a);
       vector<float> normeB = normalise(b);
       for(int i = 0; i < a.size();i++){
-	ed += pow((normeA[i]-normeB[i]),2);
+	ed += pow((b[i]-a[i]),2);
       }
       return sqrt(ed);
     }
