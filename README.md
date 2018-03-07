@@ -8,7 +8,7 @@ http://cimg.eu/
 
 linux : g++ nlmeans.cpp -o nlmeans -O2 -lm -L/usr/X11R6/lib -lpthread -lX11 -std=c++11
 
-pour lancer le projet : ./nlmeans -i image -s patchSize (-n noise si l'image n'est pas bruité)
+pour lancer le projet : ./nlmeans -i image -s patchSize (-n noise si l'image n'est pas bruité && -h pour le sigma du bruit)
 
 valeur -n : 0 -> gaussian, 1 -> uniforme, 2 -> Salt & Pepper, 3 -> Poisson, 4 -> Rician
 
