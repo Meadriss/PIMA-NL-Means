@@ -28,3 +28,5 @@ commande : ./nlmeans -i Picture/barbara.png -h 10 -n 0 -s 7
 
     Original                                 Bruité/ZeroPadding                               Resultat
 ![ScreenShot](/Resultat/Resultat_NL_MEANS.png)
+
+![ScreenShot](/Resultat/Resultat_NL_MEANS_2.png)
