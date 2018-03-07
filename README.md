@@ -19,3 +19,12 @@ https://perso.telecom-paristech.fr/bloch/P6Image/Projets/NLMeans.pdf
 
 Connelly Barnes, Eli Shechtaman, Adam Finkelstein, Dan B Goldman. PatchMatch: A Randomized Correspondence Algorithm for Structural Image Editing. ACM Transactions on Graphics (Proc. SIGGRAPH) 28(3), August 2009.
 http://gfx.cs.princeton.edu/pubs/Barnes_2009_PAR/patchmatch.pdf
+
+# Resultat
+
+---- NLMEANS ----
+
+commande : ./nlmeans -i Picture/barbara.png -h 10 -n 0 -s 7
+
+    Original                                 Bruité/ZeroPadding                               Resultat
+![ScreenShot](/Resultat/Resultat_NL_MEANS.png)
