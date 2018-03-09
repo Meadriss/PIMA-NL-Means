@@ -59,19 +59,7 @@ namespace utils{
     return somme/a.size();
   }
   
-  float euclideanDistanceNL(vector<float>& a, vector<float>& b){
-    float retour = 0;
-    vector<float> calcul;
-    for(int i = 0; i < a.size(); i++){
-      calcul.push_back(b[i]-a[i]);
-    }
-    retour = means(calcul);
-    retour = retour*retour;
-    return retour;
-  }
-
-  
-  float euclideanDistance(vector<float>& a, vector<float>& b){
+  float euclideanDistance(vector<float>& a, vector<float>& b,float g){
     float ed = 0;
     if(a.size() == b.size()){
       vector<float> normeA = normalise(a);
@@ -79,7 +67,7 @@ namespace utils{
       for(int i = 0; i < a.size();i++){
 	ed += pow((b[i]-a[i]),2);
       }
-      return sqrt(ed);
+      return (sqrt(ed*g));
     }
     else{
       return ed;

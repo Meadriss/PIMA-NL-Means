@@ -27,8 +27,8 @@ CImg<unsigned char> zeroPadding(const CImg<unsigned char>& I,int patchSize){
  * distance euclidienne
  */
 double weightTild(vector<float>& gsvI, vector<float>& gsvJ, float h,float a){
-  double eucli = euclideanDistance(gsvI,gsvJ);
-  return exp(-(eucli)/(h*h))/a;
+  double eucli = euclideanDistance(gsvI,gsvJ,a);
+  return exp(-((eucli*eucli))/(h*h));
 }
 
 /*
@@ -145,6 +145,7 @@ int main(int argc, char ** argv){
       i++;
       h = atoi(argv[i]);
       cout << "sigma bruit = " << h << endl;
+      continue;
     }
   }
   CImg<unsigned char> original(im);
