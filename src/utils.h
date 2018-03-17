@@ -16,6 +16,9 @@ using namespace cimg_library;
 
 namespace utils{
 
+  /*
+   * produit scalaire
+   */
   float dot(const vector<float>& a, const vector<float>& b){
     int result = 0;
     int s = a.size();
@@ -25,6 +28,9 @@ namespace utils{
     return result;
   }
   
+  /*
+   * retourne le vecteur des valeurs du patch centrer en x,y
+   */
   vector<float> getGrayScaleVector(CImg<unsigned char>& I,int x,int y,int size){
     vector<float> gsv;
     for (int i = -size; i <size ; i++){
@@ -35,7 +41,10 @@ namespace utils{
     return gsv;
   }
 
-  vector<float> normalise(vector<float>& a){
+  /*
+   * normalise un vecteur
+   */
+  vector<float> normalize(vector<float>& a){
     vector<float> retour(a);
     for (auto& n: retour){
       n = n/255;
@@ -43,6 +52,9 @@ namespace utils{
     return retour;
   }
 
+  /*
+   * Norme vecteur
+   */ 
   float norme(vector<float>& x){
     float n = 0;
     for (int i = 0; i < x.size(); i++){
@@ -51,6 +63,9 @@ namespace utils{
     return sqrt(n);
   }
 
+  /*
+   * filtre moyenneur
+   */
   const float means(vector<float>& a){
     float somme = 0;
     for(auto& n:a){
@@ -58,29 +73,102 @@ namespace utils{
     }
     return somme/a.size();
   }
+
+  /*
+   * filtre median
+   */
+  const float median(vector<float>& a){
+    sort(a.begin(),a.end());
+    return a[ceil(a.size()/2)];
+  }
+
+  /*
+   * Deviation standard de Gauss 2D
+   */
+  float standarDeviationGauss(int x, int y, float h){
+    float content = -((pow(x,2)+pow(y,2))/(2*h*h));
+    float div = 1/(h*h*sqrt(2*M_PI));
+    return div*exp(content);
+  }
   
+  float standarDeviationGauss1D(int x, float h){
+    float content = -(pow(x,2)/(4*h*h));
+    float div = 1/(h*h*sqrt(2*M_PI));
+    return div*exp(content);
+  }
+    
+  /*
+   * Distance euclidienne 2 par rapport a un noyau gaussian g
+   */
   float euclideanDistance(vector<float>& a, vector<float>& b,float g){
     float ed = 0;
     if(a.size() == b.size()){
-      vector<float> normeA = normalise(a);
-      vector<float> normeB = normalise(b);
+      vector<float> normeA = normalize(a);
+      vector<float> normeB = normalize(b);
       for(int i = 0; i < a.size();i++){
-	ed += pow((b[i]-a[i]),2);
+	ed += pow(((b[i]-a[i])),2);
       }
-      return (sqrt(ed*g));
+      return sqrt(standarDeviationGauss1D(ed,g));
     }
     else{
       return ed;
     }
   }
 
-  float standarDeviationGauss(int x, int y, float h){
-    float content = -((pow(x,2)+pow(y,2))/(2*h*h));
-    float div = 1/(2*h*h*M_PI);
-    return div*exp(content);
+  float euclideanDistanceGauss(vector<float>& a, vector<float>& b,float h){
+    float ed = 0;
+    int n =-3;
+    if(a.size() == b.size()){
+      for(int i = 0; i < a.size();i++){
+	if(n%3 == 0){
+	  n += 3;
+	}
+	float x = b[i]-a[i];
+	float g = standarDeviationGauss1D(i,h);
+	ed += pow(sqrt(pow(x,2)),2)*g;
+      }
+      return ed;
+    }
+    else{
+      return ed;
+    }
   }
-      
-};
 
+
+
+
+  /*
+   * Just a Zero padding fonction for filter
+   */
+  CImg<unsigned char> zeroPadding(const CImg<unsigned char>& I,int patchSize){
+  int n = I.width();
+  int m = I.height();
+  int search = 3*patchSize-1;
+  CImg<unsigned char> F(n+search,m+search,1,I.spectrum(),0);
+  //F.rand(0,255);
+  F.draw_image(search/2,search/2,0,0,I);
+  return F;
+}
+  
+  CImg<unsigned char> zeroPadding(const CImg<unsigned char>& I, int patchSize, int search){
+    int n = I.width();
+    int m = I.height();
+    int full = search+patchSize;
+    CImg<unsigned char> F(n+search,m+search,1,I.spectrum(),0);
+    F.draw_image(search/2,search/2,0,0,I);
+    return F;
+  }
+
+  float meansSquareError(const CImg<unsigned char>& I, const CImg<unsigned char>& F){
+    float sommeError = 0;
+    for(int i = 0; i < I.width(); i++){
+      for(int j = 0; j < I.height(); j++){
+	sommeError += pow((F(i,j)-I(i,j)),2);
+      }
+    }
+    return (sommeError)/(F.width()*F.height());
+  }
+
+};
 
 #endif
