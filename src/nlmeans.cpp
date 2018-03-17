@@ -87,7 +87,7 @@ CImg<unsigned char> nlMeans(CImg<unsigned char>& I, int patchSize,float h){
   int n = F.width();
   int m = F.height();
   int size = (patchSize-1)/2;
-  int search = patchSize*3+1;
+  int search = patchSize*3-1;
   vector<float> gsvI;
   for(int x = 0; x < n; x++){
     for(int y = 0; y < m; y++){
@@ -207,7 +207,7 @@ int main(int argc, char ** argv){
   CImg<unsigned char> filter = nlMeans(image,patchSize,h);
   CImg<unsigned char> filterM = means(image,patchSize);
   CImg<unsigned char> filterMed = medianFilter(image,patchSize);
-  //CImg<float> test = testPatch(image,patchSize,h);
+  //CImg<float> test = image.get_nlmeans(patchSize,-1,15,h,1);
   CImgList<unsigned char> visu(original,image,filter,filterM,filterMed);
   
   cout << endl;
@@ -216,11 +216,13 @@ int main(int argc, char ** argv){
   cout << "NLmeans : " << filter.MSE(original) << endl;
   cout << "means : " << filterM.MSE(original) << endl;
   cout << "median : " << filterMed.MSE(original) << endl;
+  //cout << "nl means CImg : " << test.MSE(original) << endl;
   cout << "DB original : " << original.PSNR(original,255) << endl; 
   cout << "DB noise : " << image.PSNR(original,255) << endl;
   cout << "DB NLmeans : " << filter.PSNR(original,255) << endl;
   cout << "DB means : " << filterM.PSNR(original,255) << endl;
   cout << "DB median : " << filterMed.PSNR(original,255) << endl;
+  //cout << "DB nl means CImg : " << test.PSNR(original,255) << endl;
   cout << endl;
 
   /*

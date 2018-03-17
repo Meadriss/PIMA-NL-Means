@@ -135,8 +135,6 @@ namespace utils{
   }
 
 
-
-
   /*
    * Just a Zero padding fonction for filter
    */
@@ -153,9 +151,9 @@ namespace utils{
   CImg<unsigned char> zeroPadding(const CImg<unsigned char>& I, int patchSize, int search){
     int n = I.width();
     int m = I.height();
-    int full = search+patchSize;
-    CImg<unsigned char> F(n+search,m+search,1,I.spectrum(),0);
-    F.draw_image(search/2,search/2,0,0,I);
+    int full = search;
+    CImg<unsigned char> F(n+search-1,m+search-1,1,I.spectrum(),0);
+    F.draw_image((search-1)/2,(search-1)/2,0,0,I);
     return F;
   }
 
