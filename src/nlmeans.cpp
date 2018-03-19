@@ -16,7 +16,7 @@ using namespace utils;
 /*
  * distance euclidienne
  */
-double weightTild(vector<float>& gsvI, vector<float>& gsvJ, float h,float a){
+double weightTild(vector<float>& gsvI, vector<float>& gsvJ, float h){
   double eucli = euclideanDistanceGauss(gsvI,gsvJ,h);
   return exp(-((eucli))/(h*h));
 }
@@ -27,12 +27,13 @@ double normaliseConstant(CImg<unsigned char>& I, vector<float>& gsvI,int patchSi
   vector<float> gsvJ;
   double constant = 0;
   int size = (patchSize-1)/2;
+  int search = (3*patchSize-1)/2;
+  int it = (search-size);
   float a = 0, wMax = 0;
   for(int i = -patchSize; i <= patchSize; i++){
     for(int j = -patchSize; j <= patchSize; j++){
       gsvJ = getGrayScaleVector(I,x+i,y+j,size);
-      a = standarDeviationGauss(i,j,h);
-      float w = weightTild(gsvI,gsvJ,h,a);
+      float w = weightTild(gsvI,gsvJ,h);
       constant += w;
       //cout << i << ", " << constant << endl;
     }
@@ -44,8 +45,8 @@ double normaliseConstant(CImg<unsigned char>& I, vector<float>& gsvI,int patchSi
 /*
  * fonction calcul poids
  */
-double weight(vector<float>& gsvI, vector<float>& gsvJ, float h, double c,double a){
-  double wt = weightTild(gsvI,gsvJ,h,a);
+double weight(vector<float>& gsvI, vector<float>& gsvJ, float h, double c){
+  double wt = weightTild(gsvI,gsvJ,h);
   return wt/c;
 }
 
@@ -56,7 +57,8 @@ double weight(vector<float>& gsvI, vector<float>& gsvJ, float h, double c,double
 
 double filterPixel(CImg<unsigned char>& I, vector<float> gsvI, int patchSize, float h,int x, int y){
   int size = (patchSize-1)/2;
-  int search = (patchSize*3)+1;
+  int search = ((patchSize*3)-1)/2;
+  int it = (search-size);
   double w = 0, somme = 0;
   double c = normaliseConstant(I,gsvI,patchSize,h,x,y);
   vector<float> gsvJ;
@@ -65,8 +67,7 @@ double filterPixel(CImg<unsigned char>& I, vector<float> gsvI, int patchSize, fl
   for(int i= -patchSize; i <= patchSize; i++){
     for(int j = -patchSize; j <= patchSize; j++){
       gsvJ = getGrayScaleVector(I,x+i,y+j,size);
-      a = standarDeviationGauss(i,j,h);
-      w = weight(gsvI,gsvJ,h,c,a);
+      w = weight(gsvI,gsvJ,h,c);
       sommeW += w;
       somme += w*I(x+i,y+j);
     }
@@ -216,13 +217,13 @@ int main(int argc, char ** argv){
   cout << "NLmeans : " << filter.MSE(original) << endl;
   cout << "means : " << filterM.MSE(original) << endl;
   cout << "median : " << filterMed.MSE(original) << endl;
-  //cout << "nl means CImg : " << test.MSE(original) << endl;
+  //  cout << "nl means CImg : " << test.MSE(original) << endl;
   cout << "DB original : " << original.PSNR(original,255) << endl; 
   cout << "DB noise : " << image.PSNR(original,255) << endl;
   cout << "DB NLmeans : " << filter.PSNR(original,255) << endl;
   cout << "DB means : " << filterM.PSNR(original,255) << endl;
   cout << "DB median : " << filterMed.PSNR(original,255) << endl;
-  //cout << "DB nl means CImg : " << test.PSNR(original,255) << endl;
+  //  cout << "DB nl means CImg : " << test.PSNR(original,255) << endl;
   cout << endl;
 
   /*

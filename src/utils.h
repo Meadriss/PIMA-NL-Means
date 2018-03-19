@@ -93,7 +93,7 @@ namespace utils{
   
   float standarDeviationGauss1D(int x, float h){
     float content = -(pow(x,2)/(4*h*h));
-    float div = 1/(h*h*sqrt(2*M_PI));
+    float div = 1/(h*h*4*M_PI);
     return div*exp(content);
   }
     
@@ -117,15 +117,18 @@ namespace utils{
 
   float euclideanDistanceGauss(vector<float>& a, vector<float>& b,float h){
     float ed = 0;
-    int n =-3;
     if(a.size() == b.size()){
-      for(int i = 0; i < a.size();i++){
-	if(n%3 == 0){
-	  n += 3;
+      int size = sqrt(a.size())/2;
+      vector<float> g;
+      for(int i = -size; i < size; i++){
+	for(int j = -size; j < size; j++){
+	  g.push_back(standarDeviationGauss(i,j,h));
 	}
-	float x = b[i]-a[i];
-	float g = standarDeviationGauss1D(i,h);
-	ed += pow(sqrt(pow(x,2)),2)*g;
+      }
+      for(int k = 0; k < a.size();k++){
+	float x = b[k]-a[k];
+	//float g = standarDeviationGauss1D(i,h);
+	ed += pow(sqrt(pow(x,2)),2)*g[k];
       }
       return ed;
     }
