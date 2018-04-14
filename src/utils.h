@@ -172,4 +172,26 @@ namespace utils{
 
 };
 
+
+namespace morphologie{
+  using utils::standarDeviationGauss;
+  
+  float morphoWeight(const vector<float>& a,const vector<float>& b, float alpha, float h){
+    float somme = 0;
+    int size = sqrt(a.size())/2;
+    vector<float> g;
+    for(int i = -size; i < size; i++){
+      for(int j = -size; j < size; j++){
+	g.push_back(standarDeviationGauss(i,j,h));
+      }
+    }
+    for(int k = 0; k < a.size();k++){
+      float x = b[k]-a[k];
+      somme += pow(sqrt(pow(x,2)),2)*g[k];
+    }
+    return -alpha*somme;
+  }
+}
+
+
 #endif

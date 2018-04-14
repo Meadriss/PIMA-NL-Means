@@ -208,7 +208,7 @@ int main(int argc, char ** argv){
   CImg<unsigned char> filter = nlMeans(image,patchSize,h);
   CImg<unsigned char> filterM = means(image,patchSize);
   CImg<unsigned char> filterMed = medianFilter(image,patchSize);
-  //CImg<float> test = image.get_nlmeans(patchSize,-1,15,h,1);
+  //CImg<float> test = image.get_nlmeans(patchSize,-1,21,h,1);
   CImgList<unsigned char> visu(original,image,filter,filterM,filterMed);
   
   cout << endl;
@@ -217,43 +217,15 @@ int main(int argc, char ** argv){
   cout << "NLmeans : " << filter.MSE(original) << endl;
   cout << "means : " << filterM.MSE(original) << endl;
   cout << "median : " << filterMed.MSE(original) << endl;
-  //  cout << "nl means CImg : " << test.MSE(original) << endl;
+  //cout << "nl means CImg : " << test.MSE(original) << endl;
   cout << "DB original : " << original.PSNR(original,255) << endl; 
   cout << "DB noise : " << image.PSNR(original,255) << endl;
   cout << "DB NLmeans : " << filter.PSNR(original,255) << endl;
   cout << "DB means : " << filterM.PSNR(original,255) << endl;
   cout << "DB median : " << filterMed.PSNR(original,255) << endl;
-  //  cout << "DB nl means CImg : " << test.PSNR(original,255) << endl;
+  //cout << "DB nl means CImg : " << test.PSNR(original,255) << endl;
   cout << endl;
 
-  /*
-   *exemple plot avec sin
-
-  cimg_usage("Simple plotter of mathematical formulas");
-  const char *const formula = cimg_option("-f","sin(x/8) % cos(2*x)","Formula to plot");
-  const float x0 = cimg_option("-x0",-5.0f,"Minimal X-value");
-  const float x1 = cimg_option("-x1",5.0f,"Maximal X-value");
-  const int resolution = cimg_option("-r",1024,"Plot resolution");
-  const unsigned int nresolution = resolution>1?resolution:1024;
-  const unsigned int plot_type = cimg_option("-p",1,"Plot type");
-  const unsigned int vertex_type = cimg_option("-v",1,"Vertex type");
-
-  // Create plot data.
-  CImg<double> values(4,nresolution,1,1,0);
-  const unsigned int r = nresolution - 1;
-  cimg_forY(values,X) values(0,X) = x0 + X*(x1-x0)/r;
-  cimg::eval(formula,values).move_to(values);
-
-  // Display interactive plot window.
-  values.display_graph(formula,plot_type,vertex_type,"X-axis",x0,x1,"Y-axis");
-
-  */
-  /*
-  CImgDisplay main_disp(visu,"affichage filtrage NL/means/median");
-  while(!main_disp.is_closed()){
-    main_disp.wait();
-  }
-  */
   visu.display();
   return 0;
 }
