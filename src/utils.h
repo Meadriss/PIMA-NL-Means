@@ -31,7 +31,7 @@ namespace utils{
   /*
    * retourne le vecteur des valeurs du patch centrer en x,y
    */
-  vector<float> getGrayScaleVector(CImg<unsigned char>& I,int x,int y,int size){
+  vector<float> getGrayScaleVector(CImg<unsigned char> & I,int x,int y,int size){
     vector<float> gsv;
     for (int i = -size; i <size ; i++){
       for(int j = -size; j < size; j++){
@@ -160,6 +160,22 @@ namespace utils{
     return F;
   }
 
+  CImg<unsigned char> dilaPadding(CImg<unsigned char> const &I, int size, int search){
+    int n = I.width(), m = I.height();
+    int si = (size-1)/2, se = (search-1)/2;
+    CImg<unsigned char> F(n+search+size,m+search+size,1,I.spectrum(),0);
+    F.draw_image(si+se,si+se,0,0,I);
+    return F;
+  }
+  
+  CImg<unsigned char> eroPadding(CImg<unsigned char> const &I, int size, int search){
+    int n = I.width(), m = I.height();
+    int si = (size-1)/2, se = (search-1)/2;
+    CImg<unsigned char> F(n+search+size,m+search+size,1,I.spectrum(),255);
+    F.draw_image(si+se,si+se,0,0,I);
+    return F;
+  }
+  
   float meansSquareError(const CImg<unsigned char>& I, const CImg<unsigned char>& F){
     float sommeError = 0;
     for(int i = 0; i < I.width(); i++){
@@ -171,27 +187,5 @@ namespace utils{
   }
 
 };
-
-
-namespace morphologie{
-  using utils::standarDeviationGauss;
-  
-  float morphoWeight(const vector<float>& a,const vector<float>& b, float alpha, float h){
-    float somme = 0;
-    int size = sqrt(a.size())/2;
-    vector<float> g;
-    for(int i = -size; i < size; i++){
-      for(int j = -size; j < size; j++){
-	g.push_back(standarDeviationGauss(i,j,h));
-      }
-    }
-    for(int k = 0; k < a.size();k++){
-      float x = b[k]-a[k];
-      somme += pow(sqrt(pow(x,2)),2)*g[k];
-    }
-    return -alpha*somme;
-  }
-}
-
 
 #endif
