@@ -13,7 +13,7 @@ pour lancer le projet : ./nlmeans -i image -s patchSize (-n noise si l'image n'e
 valeur -n : 0 -> gaussian, 1 -> uniforme, 2 -> Salt & Pepper, 3 -> Poisson, 4 -> Rician
 
 ./morpho -a 0.4 -s 3 -n 1 -seuil 10 -h 40
-
+option : -a = apha, -n = noise, -sig = sigma noise, -i = picture, -h = filtering param, -s = patchSize, -seuil = threshold
 
 # Bibliographie
 
