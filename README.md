@@ -7,10 +7,14 @@ Le projet seras dévelloper en C++ avec l'utilisation de la librairie CImg (dist
 http://cimg.eu/
 
 linux : g++ nlmeans.cpp -o nlmeans -O2 -lm -L/usr/X11R6/lib -lpthread -lX11 -std=c++11
+        g++ nl_morpho.cpp -o morpho -O2 -lm -L/usr/X11R6/lib -lpthread -lX11 -std=c++11
 
 pour lancer le projet : ./nlmeans -i image -s patchSize (-n noise si l'image n'est pas bruité && -h pour le sigma du bruit)
-
 valeur -n : 0 -> gaussian, 1 -> uniforme, 2 -> Salt & Pepper, 3 -> Poisson, 4 -> Rician
+
+./morpho -a 0.4 -s 3 -n 1 -seuil 10 -h 40
+
+option : -a = apha, -n = noise, -sig = sigma noise, -i = picture, -h = filtering param, -s = patchSize, -seuil = threshold
 
 # Bibliographie
 
