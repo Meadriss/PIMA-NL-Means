@@ -5,138 +5,172 @@
 
 #include "CImg.h"
 #include "utils.h"
-#include "operator.h"
 
 using namespace cimg_library;
 using namespace std;
 using namespace utils;
-using namespace operatorMorpho;
 
+/**
+ * Construit un element structurant.
+ * Ici un carré de taille size*size
+ **/
+vector<float> elementStruct(int size){
+  vector<float> element;
+  int ksize = (size-1)/2;
+  for(int i = -ksize; i <= ksize; i++){
+    for(int j = -ksize; j <= ksize; j++){
+      element.push_back(1);
+    }
+  }
+  return element;
+}
+
+/**
+ * Fonction de calcul de poids
+ * W = alpha*euclideanDistanceGauss (from utils)
+ * pour l'instant l'élément structurant n'est qu'un carré de taille patchSize.
+ **/
 double weight(vector<float> gsvI, vector<float> gsvJ, double alpha, float h,vector<float> kernel){
   double eucli = euclideanDistanceGauss(gsvI,gsvJ,h);
   return alpha*eucli;
 }
 
-CImg<unsigned char> ope_dila(CImg<unsigned char> &I, int size,double alpha, float h,double s){
-  CImg<unsigned char> zero = dilaPadding(I, size, 3*size);
+
+/**
+ * Operation de dilatation
+ * 
+ **/
+CImg<unsigned char> ope_dilatation(CImg<unsigned char> &I, int size,double alpha, float h,double s){
+  // padding de l'image a traité ou les bords sont a la valeur minimal d'un pixel : 0
+  CImg<unsigned char> padding = dilaPadding(I, size, 3*size);
+
+  // on crée l'image qui va stocker notre resultat après dilatation
   int n = I.width(), m = I.height();
   CImg<unsigned char> It(n,m,1,I.spectrum(),0);
+
+  // on set up les variables qui vont être utile plus tard :
+  // Pour l'instant pas d'élément structurant différents d'un carré de taille "size"
+  //  patchSize      ,    search window  ,  padding
   int si = (size-1)/2, se = (size*3-1)/2, padd = si+se;
   vector<float> kernel = elementStruct(size);
   vector<float> gsvI, gsvJ;
-  double maxW = 0, minW = 0;
+  double maxW = -999999999999, minW = 99999999999; // variable pour le poids max et min de la dilatation.
+  
   cout << "c'est l'heure de la dilatation " << endl;
+
+  // on parcours l'image
   for (int i = 0; i < n; i++){
     for(int j = 0; j < m ; j++){
-      gsvI = getGrayScaleVector(zero,i+padd,j+padd,si);
-      vector<float> calcul;
-      double max = -999999999999;
+      gsvI = getGrayScaleVector(padding,i+padd,j+padd,si); // on stock le vecteur niveau de gris au pixel (i,j)
+      double max = 0; // variable représentant le plus grand pixel 
 
+      // on parcours la fenêtre de recherche
       for(int ki = -se; ki <= se; ki++){
 	for(int kj = -se; kj <= se; kj++){
-	  /*if(ki == 0 && kj == 0){
-	    continue;
+	  // on stock le vecteur niveau de gris (i+ki,j+kj) en prenant compte du padding
+	  gsvJ = getGrayScaleVector(padding,i+padd+ki,j+padd+kj,si);
+	  // calcul le poids
+	  double w = -weight(gsvI,gsvJ,alpha,h,kernel);
+
+	  // on stock le poids Max et Min
+	  if(w > maxW){
+	    maxW = w;
 	  }
-	  else{*/
-	    gsvJ = getGrayScaleVector(zero,i+padd+ki,j+padd+kj,si);
-	    double w = -weight(gsvI,gsvJ,alpha,h,kernel);
-	    //cout << w << endl;
-	    if(ki == -se && kj == -se){
-	      maxW = w;
-	      minW = w;
+	  else if(w < minW){
+	    minW = w;
+	  }
+
+	  // on test si le poids dépasse le seuil.
+	  if( w > -s){
+	    // si le pixel assossié au poids est plus grand que le pixel défini dans max
+	    if(padding(i+ki+padd,j+kj+padd)+w > max){
+	      max = padding(i+ki+padd,j+kj+padd)+w; // on le remplace
 	    }
-	    if(ki == 0 && kj == 0){
-	      continue;
-	    }
-	    if(w > maxW){
-	      maxW = w;
-	    }
-	    else if(w < minW){
-	      minW = w;
-	    }
-	    if( w > -s){
-	      if(zero(i+ki+padd,j+kj+padd)+w > max){
-		max = zero(i+ki+padd,j+kj+padd)+w;
-	      }
-	    }
+	  }
 	}
       }
-      //cout << "max, min poids: "<< maxW << ", "<< minW << endl;
+      // a la fin de la recherche on remplace la valeur (i,j) par la valeur max de son voisinage
       It(i,j) = max;
     }
   }
+  cout << "max, min poids: "<< maxW << ", "<< minW << endl;
   return It;
 }
 
-CImg<unsigned char> ope_ero(CImg<unsigned char> &I, int size,double alpha, float h,double s){
+CImg<unsigned char> ope_erosion(CImg<unsigned char> &I, int size,double alpha, float h,double s){
+  // padding de l'image a traité ou les bords sont a la valeur maximal d'un pixel : 255
   CImg<unsigned char> zero = eroPadding(I, size, 3*size);
+
+  // on crée l'image qui va stocker notre resultat après dilatation
   int n = I.width(), m = I.height();
   CImg<unsigned char> It(n,m,1,I.spectrum(),0);
+  
+  // on set up les variables qui vont être utile plus tard :
+  // Pour l'instant pas d'élément structurant différents d'un carré de taille "size"
+  //  patchSize      ,    search window  ,  padding
   int si = (size-1)/2, se = (size*3-1)/2, padd = si+se;
   vector<float> kernel = elementStruct(size);
   vector<float> gsvI, gsvJ;
-  double maxW = 0, minW = 0;
+ double maxW = -999999999999, minW = 99999999999;
+     
+  
   cout << "c'est l'heure de l'erosion " << endl;
+
+  // on parcours l'image
   for (int i = 0; i < n; i++){
     for(int j = 0; j < m ; j++){
-      gsvI = getGrayScaleVector(zero,i+padd,j+padd,si);
-      vector<float> calcul;
-      double min = 999999;
-
+      gsvI = getGrayScaleVector(zero,i+padd,j+padd,si); // on stock le vecteur niveau de gris au pixel (i,j)
+      double min = 255; // variable représentant le plus petit pixel du voisinage.
+      
       for(int ki = -se; ki <= se; ki++){
 	for(int kj = -se; kj <= se; kj++){
-	  /*if(ki == 0 && kj == 0){
-	    continue;
+	  // on stock le vecteur niveau de gris (i+ki,j+kj) en prenant compte du padding (padd)
+	  gsvJ = getGrayScaleVector(zero,i+padd+ki,j+padd+kj,si);
+	  // on calcul le poids
+	  double w = -weight(gsvI,gsvJ,alpha,h,kernel);
+
+	  if(w > maxW){
+	    maxW = w; 
 	  }
-	  else{*/
-	    gsvJ = getGrayScaleVector(zero,i+padd+ki,j+padd+kj,si);
-	    double w = -weight(gsvI,gsvJ,alpha,h,kernel);
-	    //cout << w << endl;
-	    if(ki == -se && kj == -se){
-	      maxW = w;
-	      minW = w;
+	  else if(w < minW){
+	    minW = w;
+	  }
+	  
+	  // on test si le poids est au dessus du seuil.
+	  if( w > -s){
+	    // si le pixel assossié au poids est plus petit que le pixel défini dans min
+	    if(zero(i+ki+padd,j+kj+padd)+w < min){
+	      min = zero(i+ki+padd,j+kj+padd)+w; // on le remplace
 	    }
-	    if(ki == 0 && kj == 0){
-	      continue;
-	    }
-	    if(w > maxW){
-	      maxW = w;
-	    }
-	    else if(w < minW){
-	      minW = w;
-	    }
-	    if( w > -s){
-	      if(zero(i+ki+padd,j+kj+padd)+w < min){
-		min = zero(i+ki+padd,j+kj+padd)+w;
-	      }
-	    }
+	  }
 	}
       }
-      //cout << "max, min poids: "<< maxW << ", "<< minW << endl;
       It(i,j) = min;
     }
   }
+  cout << "max, min poids: "<< maxW << ", "<< minW << endl;
+  
   return It;
 }
 
-CImg<unsigned char> ouverture(CImg<unsigned char> I,int patchSize, float h, double alpha, double s){
-  CImg<unsigned char> final = ope_ero(I,patchSize,alpha,h,s);
-  final = ope_dila(final,patchSize,alpha,h,s);
-  final = ope_dila(final,patchSize,alpha,h,s);
-  final = ope_ero(final,patchSize,alpha,h,s);
+CImg<unsigned char> gammaPhi(CImg<unsigned char> &I,int patchSize,double alpha, float h, double s){
+  CImg<unsigned char> final = ope_erosion(I,patchSize,alpha,h,s);
+  final = ope_dilatation(final,patchSize,alpha,h,s);
+  final = ope_dilatation(final,patchSize,alpha,h,s);
+  final = ope_erosion(final,patchSize,alpha,h,s);
   return final;
 }
 
-CImg<unsigned char> fermeture(CImg<unsigned char> I,int patchSize, float h, double alpha, double s){
-  CImg<unsigned char> final = ope_dila(I,patchSize,alpha,h,s);
-  final = ope_ero(final,patchSize,alpha,h,s);
-  final = ope_ero(final,patchSize,alpha,h,s);
-  final = ope_dila(final,patchSize,alpha,h,s);
+CImg<unsigned char> phiGamma(CImg<unsigned char> &I,int patchSize, double alpha, float h, double s){
+  CImg<unsigned char> final = ope_dilatation(I,patchSize,alpha,h,s);
+  final = ope_erosion(final,patchSize,alpha,h,s);
+  final = ope_erosion(final,patchSize,alpha,h,s);
+  final = ope_dilatation(final,patchSize,alpha,h,s);
   return final;
 }
 
 
-CImg<unsigned char> ouv_ferm(CImg<unsigned char> I, CImg<unsigned char> J){
+CImg<unsigned char> ouv_ferm(CImg<unsigned char> &I, CImg<unsigned char> &J){
   int n = I.width(), m = I.height();
   CImg<unsigned char> final(n,m,1,I.spectrum(),0);
   for(int i = 0; i < n; i++){
@@ -148,6 +182,7 @@ CImg<unsigned char> ouv_ferm(CImg<unsigned char> I, CImg<unsigned char> J){
 }
 
 int main(int argc, char **argv){
+  // option :
   const int patchSize = cimg_option("-s",3,"Patch Size");
   const char *im = cimg_option("-i","Picture/house2.jpg","Picture");
   const int noise = cimg_option("-n",0,"Noise type");
@@ -155,32 +190,30 @@ int main(int argc, char **argv){
   const float sigma = cimg_option("-sig",10,"Sigma noise");
   const double alpha = cimg_option("-a",1.0,"Coef alpha");
   const double s = cimg_option("-seuil", 10.0,"Threshold");
+
+  // calcul d'image
   CImg<unsigned char> original(im);
   CImg<unsigned char> noisi(original);
   original.channel(0);
   noisi.noise(sigma,noise);
-  cout << "cherchons ou ca bug !" << endl;
-  CImg<unsigned char> dila = ope_dila(noisi,patchSize,alpha,h,s);
-  CImg<unsigned char> ero = ope_ero(noisi,patchSize,alpha,h,s);
-  CImg<unsigned char> ouv = ouverture(original,patchSize,alpha,h,s);
-  CImg<unsigned char> ferm = fermeture(original,patchSize,alpha,h,s);
-  CImg<unsigned char> fin = ouv_ferm(ouv,ferm);
-  CImgList<unsigned char> main_visu(original,noisi,dila,ero,ouv,ferm,fin);
+  CImg<unsigned char> gamma = gammaPhi(noisi,patchSize,alpha,h,s);
+  CImg<unsigned char> phi = phiGamma(noisi,patchSize,alpha,h,s);
+  cout << "calcul final" << endl;
+  CImg<unsigned char> fin = ouv_ferm(gamma,phi);
+  CImgList<unsigned char> main_visu(original,noisi,gamma,phi,fin);
+
+  // affiche les MSE et PSNR de chaque image par rapport a l'original.
   cout << endl;
   cout << "noisi : "<< noisi.MSE(original) << endl;
-  cout << "dilatation : " << dila.MSE(original) << endl;
-  cout << "erosion : " << ero.MSE(original) << endl;
-  cout << "ouverture : " << ouv.MSE(original) << endl;
-  cout << "fermeture : " << ferm.MSE(original) << endl;
+  cout << "Gamma Phi : " << gamma.MSE(original) << endl;
+  cout << "Phi Gamma : " << phi.MSE(original) << endl;
   cout << "final : " << fin.MSE(original) << endl;
   cout << "DB noisi : " << noisi.PSNR(original,255) << endl; 
-  cout << "DB dilatation : " << dila.PSNR(original,255) << endl;
-  cout << "DB erosion : " << ero.PSNR(original,255) << endl;
-  cout << "DB ouverture : " << ouv.PSNR(original,255) << endl;
-  cout << "DB fermeture : " << ferm.PSNR(original,255) << endl;
+  cout << "DB Gamma Phi : " << gamma.PSNR(original,255) << endl;
+  cout << "DB Phi Gamma : " << phi.PSNR(original,255) << endl;
   cout << "DB final : " << fin.PSNR(original,255) << endl;
   cout << endl;
-
+ // affiche les images.
   main_visu.display();
   return 0;
 }

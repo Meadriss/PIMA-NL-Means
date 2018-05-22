@@ -87,7 +87,7 @@ namespace utils{
    */
   float standarDeviationGauss(int x, int y, float h){
     float content = -((pow(x,2)+pow(y,2))/(2*h*h));
-    float div = 1/(h*h*sqrt(2*M_PI));
+    float div = 1/(h*h*2*M_PI);
     return div*exp(content);
   }
   
@@ -127,7 +127,6 @@ namespace utils{
       }
       for(int k = 0; k < a.size();k++){
 	float x = b[k]-a[k];
-	//float g = standarDeviationGauss1D(i,h);
 	ed += pow(sqrt(pow(x,2)),2)*g[k];
       }
       return ed;
