@@ -170,7 +170,7 @@ CImg<unsigned char> phiGamma(CImg<unsigned char> &I,int patchSize, double alpha,
 }
 
 
-CImg<unsigned char> ouv_ferm(CImg<unsigned char> &I, CImg<unsigned char> &J){
+CImg<unsigned char> Phi_Gamma(CImg<unsigned char> &I, CImg<unsigned char> &J){
   int n = I.width(), m = I.height();
   CImg<unsigned char> final(n,m,1,I.spectrum(),0);
   for(int i = 0; i < n; i++){
@@ -199,7 +199,7 @@ int main(int argc, char **argv){
   CImg<unsigned char> gamma = gammaPhi(noisi,patchSize,alpha,h,s);
   CImg<unsigned char> phi = phiGamma(noisi,patchSize,alpha,h,s);
   cout << "calcul final" << endl;
-  CImg<unsigned char> fin = ouv_ferm(gamma,phi);
+  CImg<unsigned char> fin = Phi_Gamma(gamma,phi);
   CImgList<unsigned char> main_visu(original,noisi,gamma,phi,fin);
 
   // affiche les MSE et PSNR de chaque image par rapport a l'original.
